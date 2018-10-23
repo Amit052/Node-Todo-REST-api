@@ -1,11 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const config = require('../../../config/config');
 const db = require('../../../db/db');
 const router = express.Router();
 
  /*****************GET TASK************ */
 router.get('/:id', (req, res, next) => {
-    if( jwt.verify(req.headers.authorization.split(' ')[1], "secret").user_id == req.params.id){
+    if( jwt.verify(req.headers.authorization.split(' ')[1], config.secret).user_id == req.params.id){
     db.getTasks(req.params.id)
     .then(json=>{
         res.status(200).json(json);
@@ -21,7 +22,7 @@ else{
 //***************ADD TASK****************** */
 router.post('/', (req, res, next) => {
     const newTask = {
-        user_id: jwt.verify(req.headers.authorization.split(' ')[1], "secret").user_id,
+        user_id: jwt.verify(req.headers.authorization.split(' ')[1], config.secret).user_id,
         group_id: req.body.group_id,
         due_date: req.body.due_date,
         starred: req.body.starred,
@@ -39,7 +40,7 @@ router.post('/', (req, res, next) => {
 router.patch('/', (req, res, next) => {
     db.getTaskOwner(req.body.task_id)
     .then(id=>{
-        if( id[0].user_id == jwt.verify(req.headers.authorization.split(' ')[1], "secret").user_id){
+        if( id[0].user_id == jwt.verify(req.headers.authorization.split(' ')[1], config.secret).user_id){
             const updatedTask = {
                 task_id: req.body.task_id,
                 group_id: req.body.group_id,
@@ -68,7 +69,7 @@ router.patch('/', (req, res, next) => {
 router.delete('/', (req, res, next) => {
     db.getTaskOwner(req.body.task_id)
     .then(id=>{
-        if( id[0].user_id == jwt.verify(req.headers.authorization.split(' ')[1], "secret").user_id){
+        if( id[0].user_id == jwt.verify(req.headers.authorization.split(' ')[1], config.secret).user_id){
             db.deleteTask(req.body.task_id)
             .then(json=>{
                 res.status(200).json({

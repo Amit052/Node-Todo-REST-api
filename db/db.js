@@ -41,6 +41,18 @@ db.connect((err)=>{
             });
         });
     },
+    checkGroupAdmin: function(group_id){
+        let sql = `SELECT admin_id FROM groups WHERE group_id = ${group_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{ 
+                if(err) reject(err);
+                else{       
+
+                    resolve(result);
+                }
+            });
+        });
+    },
     getUsers: function(id){
         let sql = `SELECT * FROM users`;
         return new Promise((resolve, reject)=>{
@@ -83,6 +95,18 @@ db.connect((err)=>{
             });
         });
     },
+    addGroupUser: function(user){
+        
+        let sql = `INSERT INTO user_groups (user_id, group_id) VALUES (${user.user_id}, ${user.group_id})`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
     addTask: function(task){
         let sql = `INSERT INTO tasks (user_id, group_id, submit_date, due_date, starred, task) VALUES
          (${task.user_id}, ${task.group_id},NOW(), ${task.due_date}, ${task.starred}, "${task.task}" )`;
@@ -103,6 +127,19 @@ db.connect((err)=>{
                 else{       
                     
                     resolve(result);
+                }
+            });
+        });
+    },
+    userInGroup: function(group){
+        let sql = `SELECT group_id FROM user_groups WHERE group_id = ${group.group_id} AND user_id = ${group.user_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    if(result.length > 0) resolve(true);
+                    else
+                    resolve(false);
                 }
             });
         });
@@ -131,6 +168,39 @@ db.connect((err)=>{
             });
         });
     },
+    deleteGroup: function(group_id){
+        let sql = `DELETE from groups WHERE group_id = ${group_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
+    deleteGroupusers: function(group_id){
+        let sql = `DELETE from user_groups WHERE group_id = ${group_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
+    deleteGroupUser: function(data){
+        let sql = `DELETE from user_groups WHERE group_id = ${data.group_id} AND user_id = ${data.user_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
     delUser: function(id){
         let sql = `DELETE from users WHERE user_id = ${id}`;
         return new Promise((resolve, reject)=>{
@@ -141,5 +211,84 @@ db.connect((err)=>{
                 }
             });
         });
+    },
+    getGroups: function(user_id){
+        let sql = `SELECT * FROM user_groups inner join groups ON groups.group_id = user_groups.group_id WHERE user_groups.user_id = ${user_id}`;
+ 
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                
+                if(err){
+        
+                    reject(err);
+                } 
+                else{       
+                    let json = [];
+                    result.forEach(element => {
+                        json.push(element);
+                    });
+              
+                    resolve(json);
+                }
+            });
+        });
+    },
+    addGroup: function(group){
+        let sql = `INSERT INTO groups (group_name, admin_id) VALUES ('${group.group_name}', ${group.admin_id})`;
+        console.log(sql);
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{  
+                    let sql2 = `INSERT INTO user_groups (user_id, group_id) VALUES (${group.admin_id}, ${result.insertId})`;     
+                    db.query(sql2, (err2, result2)=>{
+                        if(err2) reject(err2)
+                        else resolve ();
+                    });
+                    resolve();
+                }
+            });
+        });
+    },
+    updateGroup: function(group){
+        let sql = `UPDATE groups set group_name = "${group.group_name}"
+        WHERE group_id = ${group.group_id}
+        `;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
+
+    updateUser: function(user){
+
+        let sql = `UPDATE users set user_email = "${user.user_email}", user_name="${user.user_name}"
+        WHERE user_id = ${user.user_id}`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
+    },
+    updateUserPassword: function(user){
+
+        let sql = `UPDATE users set user_password = "${user.user_password}"
+        WHERE user_email = "${user.user_email}"`;
+        return new Promise((resolve, reject)=>{
+            db.query(sql, (err, result) =>{
+                if(err) reject(err);
+                else{       
+                    resolve();
+                }
+            });
+        });
     }
+    
 };
